@@ -1,0 +1,6 @@
+# Tool paths for building whisper.cpp (feature local-whisper).
+# Copy this file to config.toml and set the paths for your machine.
+# Not needed if CMake and LLVM are already on PATH.
+[env]
+LIBCLANG_PATH = "C:\\Program Files\\LLVM\\bin"
+CMAKE = "C:\\Program Files\\CMake\\bin\\cmake.exe"

@@ -1,0 +1,240 @@
+/* Command palette, shortcut sheet, hotkey capture, region focus. Tokens come from styles.css. */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 12vh;
+  animation: dialog-fade 100ms ease-out;
+}
+
+.dialog {
+  width: min(600px, 92vw);
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.palette-input[type='text'],
+.palette-input[type='text']:focus {
+  flex: none;
+  width: 100%;
+  height: 52px;
+  padding: 0 20px;
+  font-size: var(--fs-md);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  box-shadow: none;
+}
+
+.palette-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.palette-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--s2);
+  overflow-y: auto;
+}
+
+.palette-opt {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  height: 36px;
+  padding: 0 var(--s3);
+  border-radius: var(--r-pill);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+/* The same selection mark as the rail: a lighter pill. */
+.palette-opt.on {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.palette-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-scope {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+.palette-empty {
+  padding: var(--s4) 20px 20px;
+  color: var(--text-3);
+}
+
+.dialog.sheet {
+  width: min(780px, 92vw);
+}
+
+.sheet-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 var(--s3) 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sheet-head h2 {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+/* Two columns of rows. */
+.sheet-body {
+  overflow-y: auto;
+  padding: var(--s1) 20px 20px;
+  columns: 2;
+  column-gap: var(--s6);
+}
+
+.sheet-body section {
+  break-inside: avoid;
+  padding-top: var(--s4);
+}
+
+.sheet-body h3 {
+  margin: 0 0 var(--s1);
+  font-family: var(--font);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-3);
+}
+
+.sheet-body ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sheet-body li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: 30px;
+  padding: 3px 0;
+  color: var(--text);
+}
+
+.sheet-keys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--s2);
+}
+
+.sheet-alt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sheet-or {
+  font-size: var(--fs-label);
+  color: var(--text-3);
+}
+
+.hotkey-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.hotkey-capture {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--h);
+  padding: 4px 6px;
+  font: inherit;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+
+.hotkey-capture.capturing {
+  padding-left: var(--s3);
+  border-color: var(--accent);
+  background: var(--hover);
+}
+
+.hotkey-capture.invalid {
+  border-color: var(--danger);
+}
+
+.hotkey-prompt {
+  color: var(--text-2);
+}
+
+.hotkey-msg {
+  font-size: var(--fs-xs);
+}
+
+.hotkey-msg.error {
+  color: var(--danger);
+}
+
+.hotkey-msg.warn {
+  color: var(--warn);
+}
+
+main.canvas:focus,
+main.canvas:focus-visible {
+  outline: none;
+}
+
+[data-region]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@keyframes dialog-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-backdrop {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .sheet-body {
+    columns: 1;
+  }
+}

@@ -1,0 +1,352 @@
+/* Overlay surfaces. Two shapes, so the hotkeys read differently at a glance:
+   - .dp-pill: dictation status chip (Ctrl+Shift+D), with a speech bubble above it.
+   - .lv-panel: live caption panel (Ctrl+Shift+Space), subtitle style.
+   The overlay window is transparent and dark in both themes, so the surfaces set the
+   dark token values themselves. Content sits at the bottom of the window. */
+
+.ov-root {
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.ov-theme {
+  --text: #ededf0;
+  --text-2: #a3a5ae;
+  --text-3: #8f919c;
+  --rec: #ff5a60;
+  --ok: #3fd68f;
+  --warn: #f2b54a;
+  --danger: #ff6868;
+  --surface-2: #24252c;
+  --line-2: rgba(255, 255, 255, 0.14);
+  --hover: rgba(255, 255, 255, 0.07);
+  --accent-text: #b9b0ff;
+  --led-off: rgba(255, 255, 255, 0.08);
+
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(26, 27, 33, 0.97), rgba(15, 16, 20, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 12px 28px -10px rgba(0, 0, 0, 0.7);
+  font-size: 13px;
+  overflow: hidden;
+}
+.ov-theme.ov-v-error {
+  border-color: rgba(255, 104, 104, 0.45);
+}
+
+/* ---------- Shared pieces ---------- */
+.ov-end {
+  display: block;
+  direction: rtl;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ov-end-in {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.ov-time {
+  flex: none;
+  min-width: 32px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.ov-wavebox {
+  flex: 1 1 100px;
+  min-width: 56px;
+  max-width: 130px;
+  height: 28px;
+  transition: opacity 160ms ease;
+}
+.ov-wavebox.frozen {
+  opacity: 0.3;
+}
+.ov-wavebox.off {
+  opacity: 0.18;
+}
+.ov-wave {
+  display: block;
+  width: 100%;
+  height: 28px;
+  color: var(--text);
+}
+.ov-hints {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  color: var(--text-3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ov-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ov-theme .icon-btn {
+  flex: none;
+  color: var(--text-2);
+}
+.ov-theme .icon-btn:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+.ov-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(242, 181, 74, 0.16);
+  color: var(--warn);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+.ov-badge:hover {
+  background: rgba(242, 181, 74, 0.26);
+}
+.ov-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+.ov-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: var(--accent);
+  animation: ov-slide 1.3s ease-in-out infinite;
+}
+.ov-root .toasts {
+  right: 12px;
+  bottom: 12px;
+  width: 300px;
+}
+
+/* ---------- Dictation pill ---------- */
+.dp-wrap {
+  width: min(100%, 440px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.dp-pill {
+  width: 100%;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px 0 11px;
+  border-radius: 27px;
+}
+.dp-glyph {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.ov-v-listening .dp-glyph {
+  background: var(--rec);
+  color: #fff;
+  animation: ov-pulse 1.8s ease-out infinite;
+}
+.ov-v-done .dp-glyph {
+  background: rgba(63, 214, 143, 0.18);
+  color: var(--ok);
+}
+.ov-v-error .dp-glyph {
+  background: rgba(255, 104, 104, 0.18);
+  color: var(--danger);
+}
+.dp-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 0 0 auto;
+  line-height: 1.25;
+}
+/* Done and error have no waveform, so the text takes the room. */
+.ov-v-done .dp-text,
+.ov-v-error .dp-text,
+.ov-v-idle .dp-text {
+  flex: 1 1 0;
+}
+.dp-word {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dp-sub {
+  font-size: 11.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dp-sub.err {
+  color: var(--danger);
+}
+.ov-v-done .dp-sub {
+  color: var(--warn);
+}
+.dp-spacer {
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: stretch;
+}
+.dp-pill .ov-wavebox {
+  min-width: 36px;
+  flex: 1 1 90px;
+  max-width: 120px;
+}
+.dp-pill .ov-hints {
+  font-size: 11.5px;
+}
+
+/* Speech bubble above the pill: the latest phrase, one line, cut from the start. */
+.dp-bubble {
+  position: relative;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px 13px;
+  border-radius: 13px;
+  background: rgba(30, 31, 38, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text, #ededf0);
+  font-size: 13.5px;
+  line-height: 1.35;
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.7);
+  animation: ov-rise 180ms ease-out;
+  --text: #ededf0;
+}
+.dp-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  background: rgba(30, 31, 38, 0.97);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transform: rotate(45deg);
+}
+
+/* ---------- Caption lines inside the bubble (Live modes) ---------- */
+.dp-bubble.two {
+  width: 100%;
+  padding: 7px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lv-line {
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.lv-line.old {
+  opacity: 0.55;
+}
+.lv-line.interim {
+  font-style: italic;
+  color: var(--text-2);
+}
+.lv-tr {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-style: normal;
+  color: var(--accent-text);
+}
+.lv-tr .ov-end {
+  flex: 1;
+  min-width: 0;
+}
+.lv-lang {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+@keyframes ov-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 90, 96, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 90, 96, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 90, 96, 0);
+  }
+}
+@keyframes ov-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(290%);
+  }
+}
+@keyframes ov-rise {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+/* No pulse, no sliding bar, no rise. The bar becomes a static track. */
+@media (prefers-reduced-motion: reduce) {
+  .ov-v-listening .dp-glyph,
+  .lv-dot,
+  .lv-line,
+  .dp-bubble {
+    animation: none;
+  }
+  .ov-bar::after {
+    animation: none;
+    width: 100%;
+    opacity: 0.55;
+  }
+  .ov-wavebox {
+    transition: none;
+  }
+}

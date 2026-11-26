@@ -1,0 +1,83 @@
+[package]
+name = "relay"
+version = "0.1.0"
+description = "Relay: voice, translation and task assistant for Windows"
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "relay_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+default = ["local-whisper"]
+# Local Whisper inference (whisper.cpp in-process). Needs CMake and LLVM (libclang) to build.
+# Build with --no-default-features for a cloud-only binary.
+local-whisper = ["dep:whisper-rs"]
+
+[dependencies]
+# app shell
+tauri = { version = "2", features = ["tray-icon", "protocol-asset"] }
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-single-instance = "2"
+
+# core
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+thiserror = "1"
+async-trait = "0.1"
+futures-util = "0.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+keyring = { version = "3", features = ["windows-native"] }
+dirs = "5"
+
+# network (agent A: stt, agent B: llm)
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "multipart", "rustls-tls"] }
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
+
+# audio (agent A)
+cpal = "0.15"
+hound = "3"
+whisper-rs = { version = "0.16", optional = true }
+
+# storage (agent B)
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# os integration (agent C)
+arboard = "3"
+enigo = "0.2"
+xcap = "0.0.14"
+image = { version = "0.25", default-features = false, features = ["png"] }
+base64 = "0.22"
+sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+  "Win32_Foundation",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_System_Threading",
+  "Win32_System_ProcessStatus",
+] }
+
+# whisper.cpp is unusably slow unoptimized; build it as Release even in dev.
+[profile.dev.package.whisper-rs-sys]
+opt-level = 3
+debug = false
+
+[profile.dev.package.whisper-rs]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+strip = true
